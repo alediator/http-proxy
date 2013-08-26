@@ -19,12 +19,17 @@
  */
 package it.geosolutions.httpproxy.service;
 
-import static org.junit.Assert.*;
+import java.util.Random;
 
+import it.geosolutions.httpproxy.BaseHttpTest;
+
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.httpclient.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,10 +43,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:http-proxy-test-applicationContext.xml")
-public class ProxyServiceTest {
+public class ProxyServiceTest extends BaseHttpTest{
 	
 	@Autowired
 	private IProxyService proxy;
+	
+	private static final String testUrl = "http://demo1.geo-solutions.it/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&version=1.3.0";
+	private static final String testPropertyChange = "timeout";
 	
 	/**
 	 * Test IProxyService execute as HTTP GET
@@ -50,8 +58,8 @@ public class ProxyServiceTest {
 	public void testExecuteGet(){
 		try {
 			// Generate mocked request and response
-			MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", "/proxy/?"
-	                + "url=http://demo1.geo-solutions.it/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&version=1.3.0");
+			MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", "/proxy/");
+			mockRequest.addParameter("url", testUrl);
 			MockHttpServletResponse mockResponse = new MockHttpServletResponse();
 			
 			// Call proxy execute
@@ -63,9 +71,66 @@ public class ProxyServiceTest {
 			assertNotNull(mockResponse.getOutputStream());
 			assertNotNull(mockResponse.getContentType());
 			assertTrue(mockResponse.getContentType().contains("text/xml"));
+			
+			LOGGER.info("Success proxy GET in '" + testUrl + "'");
+			LOGGER.info("************************ Response ************************");
+			LOGGER.info(mockResponse.getContentAsString());
+			LOGGER.info("********************** EoF Response **********************");
+			
 		} catch (Exception e) {
 			fail("Exception executing proxy");
 		}
 	}
+    
+    /**
+     * Proxy properties autowired to be changed
+     */
+    @Autowired @Qualifier("proxyProperties")
+    private PropertiesConfiguration proxyProperties;
+	
+	/**
+	 * Test IProxyService to fix #6 issue
+	 */
+	@Test
+	public void testChangeProxyConfigurationAtRuntime(){
+		try {
+			String firstValue = ((ProxyServeceImpl)proxy).getProxyProperty(testPropertyChange);
+			changeProperties();
+			String newValue = ((ProxyServeceImpl)proxy).getProxyProperty(testPropertyChange);
+			assertNotNull(firstValue);
+			assertNotNull(newValue);
+			if(firstValue.equals(newValue)){
+				fail("Property['" + testPropertyChange + "'] hasn't changed!");
+			}
+			
+			LOGGER.info("Success proxy change properties in runtime;");
+			LOGGER.info("Property['" + testPropertyChange + "'] has changed from '" + firstValue +"' to '" + newValue + "'");
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Exception executing proxy");
+		}
+	}
+
+	/**
+	 * Change the {@link #testPropertyChange} to a random value 
+	 * and wait 5001 ms for PropertiesConfiguration class can read the change
+	 * 
+	 * @throws ConfigurationException
+	 * @throws InterruptedException
+	 * 
+	 * @see org.apache.commons.configuration.reloading.FileChangedReloadingStrategy
+	 */
+	private void changeProperties() throws ConfigurationException, InterruptedException {
+		PropertiesConfiguration changeProperty = new PropertiesConfiguration(proxyProperties.getFileName());
+		changeProperty.load();
+		String newValueSetted = new String("" + new Random().nextInt());
+		changeProperty.setProperty(testPropertyChange, newValueSetted);
+		changeProperty.save();
+		// Wait 5001 ms for PropertiesConfiguration class can read the change
+		Thread.sleep(5001);
+	}
+	
+	
 
 }

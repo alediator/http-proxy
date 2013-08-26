@@ -19,21 +19,65 @@
  */
 package it.geosolutions.httpproxy.service;
 
+import it.geosolutions.httpproxy.HTTPProxy;
+import it.geosolutions.httpproxy.ProxyConfig;
 import it.geosolutions.httpproxy.exception.ProxyException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 /**
- * Proxy common interface
+ * Proxy service implementation
  * 
  * @author <a href="mailto:aledt84@gmail.com">Alejandro Diaz Torres</a>
  *
  */
 @Repository
 public class ProxyServeceImpl implements IProxyService {
+	
+	private HTTPProxy proxy;
+
+    /**
+     * The proxy configuration.
+     */
+    private ProxyConfig proxyConfig;
+    
+    /**
+     * Proxy properties autowired
+     */
+    @Autowired @Qualifier("proxyProperties")
+    private PropertiesConfiguration proxyProperties;
+
+    /**
+     * Default constructor
+     */
+	public ProxyServeceImpl(){
+		super();
+		try {
+	        proxyConfig = new ProxyConfig(proxyProperties);
+	        proxy = new HTTPProxy(proxyConfig);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Obtain a proxy property
+	 * 
+	 * @param key of the property
+	 * 
+	 * @return property value in {@link #proxyProperties}
+	 */
+	protected String getProxyProperty(String key){
+		return this.proxyProperties != null ? this.proxyProperties.getString(key) : null;
+	}
+	
 	
 	/**
      * Performs an HTTP request. Read <code>httpServletRequest</code> method. Default method is HTTP GET. 
@@ -43,7 +87,16 @@ public class ProxyServeceImpl implements IProxyService {
      */
 	public void execute(HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse) throws ProxyException {
-		// TODO Auto-generated method stub
+		try {
+			String method  = httpServletRequest.getMethod();
+			if("GET".equals(method)){
+					proxy.doGet(httpServletRequest, httpServletResponse);
+			}
+		} catch (Exception e) {
+			//TODO: handle
+			e.printStackTrace();
+			throw new ProxyException();
+		}
 
 	}
 
@@ -55,8 +108,13 @@ public class ProxyServeceImpl implements IProxyService {
      */
 	public void doGet(HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse) throws ProxyException {
-		// TODO Auto-generated method stub
-
+		try {
+			proxy.doGet(httpServletRequest, httpServletResponse);
+		} catch (Exception e) {
+			//TODO: handle
+			e.printStackTrace();
+			throw new ProxyException();
+		}
 	}
 
     /**
@@ -67,8 +125,13 @@ public class ProxyServeceImpl implements IProxyService {
      */
 	public void doPost(HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse) throws ProxyException {
-		// TODO Auto-generated method stub
-
+		try {
+			proxy.doPost(httpServletRequest, httpServletResponse);
+		} catch (Exception e) {
+			//TODO: handle
+			e.printStackTrace();
+			throw new ProxyException();
+		}
 	}
 	
     /**
@@ -79,8 +142,13 @@ public class ProxyServeceImpl implements IProxyService {
      */
 	public void doPut(HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse) throws ProxyException {
-		// TODO Auto-generated method stub
-
+		try {
+			proxy.doPut(httpServletRequest, httpServletResponse);
+		} catch (Exception e) {
+			//TODO: handle
+			e.printStackTrace();
+			throw new ProxyException();
+		}
 	}
 
     /**
@@ -91,8 +159,13 @@ public class ProxyServeceImpl implements IProxyService {
      */
 	public void doDelete(HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse) throws ProxyException {
-		// TODO Auto-generated method stub
-
+		try {
+			proxy.doDelete(httpServletRequest, httpServletResponse);
+		} catch (Exception e) {
+			//TODO: handle
+			e.printStackTrace();
+			throw new ProxyException();
+		}
 	}
 
 }

@@ -7,5 +7,17 @@
 
     <context:annotation-config/>
     <context:component-scan base-package="it.geosolutions.httpproxy.service"/>
+    
+    <bean id="reloadingStrategy"
+        class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy" />
 
+    <bean id="proxyProperties"
+        class="org.apache.commons.configuration.PropertiesConfiguration"
+		init-method="load">
+		<property name="URL">		
+			<value>classpath:proxy.properties</value>
+		</property>
+		<property name="reloadingStrategy"><ref bean="reloadingStrategy" /></property>
+    </bean>
+    
 </beans>

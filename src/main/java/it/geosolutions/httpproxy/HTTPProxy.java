@@ -101,11 +101,51 @@ public class HTTPProxy extends HttpServlet {
      * The proxy configuration.
      */
     private ProxyConfig proxyConfig;
-
-    /**
+    
+	/**
      * The proxy collbacks to provide checks.
      */
     private List<ProxyCallback> callbacks;
+    
+	/**
+	 * Default constructor
+	 */
+	public HTTPProxy() {
+		super();
+	}
+
+	/**
+	 * Constructor with proxy configuration
+	 */
+	public HTTPProxy(ProxyConfig proxyConfig) {
+		this();
+
+		this.proxyConfig = proxyConfig;
+
+		connectionManager = new MultiThreadedHttpConnectionManager();
+		HttpConnectionManagerParams params = new HttpConnectionManagerParams();
+
+		params.setSoTimeout(proxyConfig.getSoTimeout());
+		params.setConnectionTimeout(proxyConfig.getConnectionTimeout());
+		params.setMaxTotalConnections(proxyConfig.getMaxTotalConnections());
+		params.setDefaultMaxConnectionsPerHost(proxyConfig
+				.getDefaultMaxConnectionsPerHost());
+
+		connectionManager.setParams(params);
+		httpClient = new HttpClient(connectionManager);
+
+		// //////////////////////////////////////////
+		// Setup the callbacks (in the future this
+		// will be a pluggable lookup).
+		// //////////////////////////////////////////
+
+		callbacks = new ArrayList<ProxyCallback>();
+		callbacks.add(new MimeTypeChecker(proxyConfig));
+		callbacks.add(new HostNameChecker(proxyConfig));
+		callbacks.add(new RequestTypeChecker(proxyConfig));
+		callbacks.add(new MethodsChecker(proxyConfig));
+		callbacks.add(new HostChecker(proxyConfig));
+	}
 
     /**
      * Initialize the <code>ProxyServlet</code>
