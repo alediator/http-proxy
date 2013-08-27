@@ -17,11 +17,9 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.geosolutions.httpproxy.service;
+package it.geosolutions.httpproxy;
 
 import java.util.Random;
-
-import it.geosolutions.httpproxy.BaseHttpTest;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -39,73 +37,77 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Proxy service test
  * 
  * @author <a href="mailto:aledt84@gmail.com">Alejandro Diaz Torres</a>
- *
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:http-proxy-test-applicationContext.xml")
-public class ProxyServiceTest extends BaseHttpTest{
-	
+public class ProxyServiceTest extends BaseHttpTest {
+
 	@Autowired
 	private IProxyService proxy;
-	
+
 	private static final String testUrl = "http://demo1.geo-solutions.it/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&version=1.3.0";
 	private static final String testPropertyChange = "timeout";
-	
+
 	/**
 	 * Test IProxyService execute as HTTP GET
 	 */
 	@Test
-	public void testExecuteGet(){
+	public void testExecuteGet() {
 		try {
 			// Generate mocked request and response
-			MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", "/proxy/");
+			MockHttpServletRequest mockRequest = new MockHttpServletRequest(
+					"GET", "/proxy/");
 			mockRequest.addParameter("url", testUrl);
 			MockHttpServletResponse mockResponse = new MockHttpServletResponse();
-			
+
 			// Call proxy execute
 			proxy.execute(mockRequest, mockResponse);
-			
+
 			// Assert the response
 			assertNotNull(mockResponse);
 			assertEquals(mockResponse.getStatus(), HttpStatus.SC_OK);
 			assertNotNull(mockResponse.getOutputStream());
 			assertNotNull(mockResponse.getContentType());
 			assertTrue(mockResponse.getContentType().contains("text/xml"));
-			
+
 			LOGGER.info("Success proxy GET in '" + testUrl + "'");
 			LOGGER.info("************************ Response ************************");
 			LOGGER.info(mockResponse.getContentAsString());
 			LOGGER.info("********************** EoF Response **********************");
-			
+
 		} catch (Exception e) {
 			fail("Exception executing proxy");
 		}
 	}
-    
-    /**
-     * Proxy properties autowired to be changed
-     */
-    @Autowired @Qualifier("proxyProperties")
-    private PropertiesConfiguration proxyProperties;
-	
+
+	/**
+	 * Proxy properties autowired to be changed
+	 */
+	@Autowired
+	@Qualifier("proxyProperties")
+	private PropertiesConfiguration proxyProperties;
+
 	/**
 	 * Test IProxyService to fix #6 issue
 	 */
 	@Test
-	public void testChangeProxyConfigurationAtRuntime(){
+	public void testChangeProxyConfigurationAtRuntime() {
 		try {
-			String firstValue = ((ProxyServeceImpl)proxy).getProxyProperty(testPropertyChange);
+			String firstValue = proxy.getProxyProperty(testPropertyChange);
 			changeProperties();
-			String newValue = ((ProxyServeceImpl)proxy).getProxyProperty(testPropertyChange);
+			String newValue = proxy.getProxyProperty(testPropertyChange);
 			assertNotNull(firstValue);
 			assertNotNull(newValue);
-			if(firstValue.equals(newValue)){
+			if (firstValue.equals(newValue)) {
 				fail("Property['" + testPropertyChange + "'] hasn't changed!");
 			}
-			
+
 			LOGGER.info("Success proxy change properties in runtime;");
-			LOGGER.info("Property['" + testPropertyChange + "'] has changed from '" + firstValue +"' to '" + newValue + "'");
-			
+			LOGGER.info("Property ['" + testPropertyChange
+					+ "'] has changed from '" + firstValue + "' to '"
+					+ newValue + "'");
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Exception executing proxy");
@@ -113,16 +115,18 @@ public class ProxyServiceTest extends BaseHttpTest{
 	}
 
 	/**
-	 * Change the {@link #testPropertyChange} to a random value 
-	 * and wait 5001 ms for PropertiesConfiguration class can read the change
+	 * Change the {@link #testPropertyChange} to a random value and wait 5001 ms
+	 * for PropertiesConfiguration class can read the change
 	 * 
 	 * @throws ConfigurationException
 	 * @throws InterruptedException
 	 * 
 	 * @see org.apache.commons.configuration.reloading.FileChangedReloadingStrategy
 	 */
-	private void changeProperties() throws ConfigurationException, InterruptedException {
-		PropertiesConfiguration changeProperty = new PropertiesConfiguration(proxyProperties.getFileName());
+	private void changeProperties() throws ConfigurationException,
+			InterruptedException {
+		PropertiesConfiguration changeProperty = new PropertiesConfiguration(
+				proxyProperties.getFileName());
 		changeProperty.load();
 		String newValueSetted = new String("" + new Random().nextInt());
 		changeProperty.setProperty(testPropertyChange, newValueSetted);
@@ -130,7 +134,5 @@ public class ProxyServiceTest extends BaseHttpTest{
 		// Wait 5001 ms for PropertiesConfiguration class can read the change
 		Thread.sleep(5001);
 	}
-	
-	
 
 }

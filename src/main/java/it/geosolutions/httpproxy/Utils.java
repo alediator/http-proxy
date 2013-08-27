@@ -20,8 +20,11 @@
 package it.geosolutions.httpproxy;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.commons.configuration.PropertiesConfiguration;
 
 /**
  * Utility methods.
@@ -137,6 +140,34 @@ final class Utils {
             return set;
         } else {
             return null;
+        }
+    }
+    
+    /**
+     * Obtain a property value as Set of String from a properties configuration
+     * 
+     * @param props
+     * @param key
+     * 
+     * @return Set with all values as String or null if the key can't be found
+     */
+    static final Set<String> getProperty(PropertiesConfiguration props, String key){
+        Object tmpProperty = props.getProperty(key);
+        if(tmpProperty != null){
+            Set<String> set = new HashSet<String>();
+            if(tmpProperty instanceof Collection<?>){
+                for (Object tmpElement: (Collection<?>) tmpProperty) {
+                    if (tmpElement != null){
+                    	String element = tmpElement.toString();
+                        set.add(element);
+                    }
+                }
+            }else{
+            	set.add(tmpProperty.toString());
+            }
+            return set;
+        }else{
+        	return null;
         }
     }
 }

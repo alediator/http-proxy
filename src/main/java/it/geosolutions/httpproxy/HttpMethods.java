@@ -17,19 +17,35 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.geosolutions.httpproxy.exception;
+package it.geosolutions.httpproxy;
+
+import javax.servlet.http.HttpServlet;
 
 /**
- * Proxy exception
+ * HttpMethods known methods for the proxy: [DELETE, GET, POST, PUT]
  * 
  * @author <a href="mailto:aledt84@gmail.com">Alejandro Diaz Torres</a>
- *
  */
-public class ProxyException extends Exception {
+class HttpMethods {
 
 	/**
-	 * 
+	 * {@link HttpServlet#METHOD_DELETE}
 	 */
-	private static final long serialVersionUID = 6712973061331831736L;
+    static final String METHOD_DELETE = "DELETE";
+
+	/**
+	 * {@link HttpServlet#METHOD_GET}
+	 */
+    static final String METHOD_GET = "GET";
+
+	/**
+	 * {@link HttpServlet#METHOD_POST}
+	 */
+    static final String METHOD_POST = "POST";
+
+	/**
+	 * {@link HttpServlet#METHOD_PUT}
+	 */
+    static final String METHOD_PUT = "PUT";
 
 }

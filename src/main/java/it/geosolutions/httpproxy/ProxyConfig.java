@@ -134,19 +134,20 @@ public final class ProxyConfig {
         // ////////////////////////////////////////////////////////////
 
         if (props != null) {
-            Set<String> p = Utils.parseWhiteList(props.getString("hostnameWhitelist"));
+            Set<String> p = Utils.getProperty(props, "hostnameWhitelist");
             if (p != null)
                 this.setHostnameWhitelist(p);
 
-            p = Utils.parseWhiteList(props.getString("mimetypeWhitelist"));
+            p = Utils.getProperty(props, "mimetypeWhitelist");
+            //p = Utils.getProperty(props, "mimetypeWhitelist");
             if (p != null)
                 this.setMimetypeWhitelist(p);
 
-            p = Utils.parseWhiteList(props.getString("methodsWhitelist"));
+            p = Utils.getProperty(props, "methodsWhitelist");
             if (p != null)
                 this.setMethodsWhitelist(p);
 
-            p = Utils.parseWhiteList(props.getString("hostsWhitelist"));
+            p = Utils.getProperty(props, "hostsWhitelist");
             if (p != null)
                 this.setHostsWhitelist(p);
 
@@ -310,7 +311,7 @@ public final class ProxyConfig {
         PropertiesConfiguration props = propertiesLoader();
 
         if (props != null) {
-            Set<String> set = Utils.parseWhiteList(props.getString("hostnameWhitelist"));
+            Set<String> set = Utils.getProperty(props, "hostnameWhitelist");
             if (set != null)
                 this.setHostnameWhitelist(set);
         }
@@ -332,7 +333,7 @@ public final class ProxyConfig {
         PropertiesConfiguration props = propertiesLoader();
 
         if (props != null) {
-            Set<String> set = Utils.parseWhiteList(props.getString("mimetypeWhitelist"));
+            Set<String> set = Utils.getProperty(props, "mimetypeWhitelist");
             if (set != null)
                 this.setMimetypeWhitelist(set);
         }
@@ -395,7 +396,7 @@ public final class ProxyConfig {
         PropertiesConfiguration props = propertiesLoader();
 
         if (props != null) {
-            Set<String> set = Utils.parseWhiteList(props.getString("methodsWhitelist"));
+            Set<String> set = Utils.getProperty(props, "methodsWhitelist");
             if (set != null)
                 this.setMethodsWhitelist(set);
         }
@@ -417,7 +418,7 @@ public final class ProxyConfig {
         PropertiesConfiguration props = propertiesLoader();
 
         if (props != null) {
-            Set<String> set = Utils.parseWhiteList(props.getString("hostsWhitelist"));
+            Set<String> set = Utils.getProperty(props, "hostsWhitelist");
             if (set != null)
                 this.setHostsWhitelist(set);
         }
