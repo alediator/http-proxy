@@ -20,21 +20,23 @@
 package it.geosolutions.httpproxy;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
+
 /**
  * ProxyConfig class to define the proxy configuration.
  * 
  * @author Tobia Di Pisa at tobia.dipisa@geo-solutions.it
  */
-final class ProxyConfig {
+public final class ProxyConfig {
 
     private final static Logger LOGGER = Logger.getLogger(ProxyConfig.class.toString());
 
@@ -94,6 +96,11 @@ final class ProxyConfig {
     private int defaultMaxConnectionsPerHost = 6;
     
     private int defaultStreamByteSize = 1024;
+    
+    /**
+     * 
+     */
+    private Configuration proxyProperties;
 
 	/**
      * @param context
@@ -106,32 +113,42 @@ final class ProxyConfig {
         configProxy();
     }
 
+	/**
+	 * Create a new proxy configuration with proxy properties
+     * @param proxyProperties
+     */
+    public ProxyConfig(Configuration proxyProperties) {
+        this.proxyProperties = proxyProperties;
+        configProxy();
+    }
+
     /**
      * Provide the proxy configuration
      * 
      * @throws IOException
      */
     private void configProxy() {
-        Properties props = propertiesLoader();
+    	Configuration props = propertiesLoader();
 
         // ////////////////////////////////////////////////////////////
         // Load proxy configuration white lists from properties file
         // ////////////////////////////////////////////////////////////
 
         if (props != null) {
-            Set<String> p = Utils.parseWhiteList(props.getProperty("hostnameWhitelist"));
+            Set<String> p = Utils.getProperty(props, "hostnameWhitelist");
             if (p != null)
                 this.setHostnameWhitelist(p);
 
-            p = Utils.parseWhiteList(props.getProperty("mimetypeWhitelist"));
+            p = Utils.getProperty(props, "mimetypeWhitelist");
+            //p = Utils.getProperty(props, "mimetypeWhitelist");
             if (p != null)
                 this.setMimetypeWhitelist(p);
 
-            p = Utils.parseWhiteList(props.getProperty("methodsWhitelist"));
+            p = Utils.getProperty(props, "methodsWhitelist");
             if (p != null)
                 this.setMethodsWhitelist(p);
 
-            p = Utils.parseWhiteList(props.getProperty("hostsWhitelist"));
+            p = Utils.getProperty(props, "hostsWhitelist");
             if (p != null)
                 this.setHostsWhitelist(p);
 
@@ -140,23 +157,23 @@ final class ProxyConfig {
             // ////////////////////////////////////////
 
             Set<String> rt = new HashSet<String>();
-            String s = props.getProperty("reqtypeWhitelist.capabilities");
+            String s = props.getString("reqtypeWhitelist.capabilities");
             if (s != null)
                 rt.add(s);
 
-            s = props.getProperty("reqtypeWhitelist.geostore");
+            s = props.getString("reqtypeWhitelist.geostore");
             if (s != null)
                 rt.add(s);
 
-            s = props.getProperty("reqtypeWhitelist.csw");
+            s = props.getString("reqtypeWhitelist.csw");
             if (s != null)
                 rt.add(s);
             
-            s = props.getProperty("reqtypeWhitelist.featureinfo");
+            s = props.getString("reqtypeWhitelist.featureinfo");
             if (s != null)
                 rt.add(s);
             
-            s = props.getProperty("reqtypeWhitelist.generic");
+            s = props.getString("reqtypeWhitelist.generic");
             if (s != null)
                 rt.add(s);
 
@@ -168,7 +185,7 @@ final class ProxyConfig {
                 // properties file.
                 // /////////////////////////////////////////////////
             	
-                String bytesSize = props.getProperty("defaultStreamByteSize");
+                String bytesSize = props.getString("defaultStreamByteSize");
                 this.setDefaultStreamByteSize(bytesSize != null ? Integer.parseInt(bytesSize) : 
                 	this.defaultStreamByteSize);
                 
@@ -177,18 +194,18 @@ final class ProxyConfig {
                 // properties file.
                 // /////////////////////////////////////////////////
                 
-                String timeout = props.getProperty("timeout");
+                String timeout = props.getString("timeout");
                 this.setSoTimeout(timeout != null ? Integer.parseInt(timeout) : this.soTimeout);
 
-                String conn_timeout = props.getProperty("connection_timeout");
+                String conn_timeout = props.getString("connection_timeout");
                 this.setConnectionTimeout(conn_timeout != null ? Integer.parseInt(conn_timeout)
                         : this.connectionTimeout);
 
-                String max_conn = props.getProperty("max_total_connections");
+                String max_conn = props.getString("max_total_connections");
                 this.setMaxTotalConnections(max_conn != null ? Integer.parseInt(max_conn)
                         : this.maxTotalConnections);
 
-                String def_conn_host = props.getProperty("default_max_connections_per_host");
+                String def_conn_host = props.getString("default_max_connections_per_host");
                 this.setMaxTotalConnections(def_conn_host != null ? Integer.parseInt(def_conn_host)
                         : this.defaultMaxConnectionsPerHost);
 
@@ -211,34 +228,22 @@ final class ProxyConfig {
      * 
      * @return Properties
      */
-    public Properties propertiesLoader() {
-        InputStream inputStream = ProxyConfig.class.getResourceAsStream(propertiesFilePath);
-        Properties props = new Properties();
+    public Configuration propertiesLoader() {
+    	if(this.proxyProperties != null){
+    		return this.proxyProperties;
+    	}else{
+            try {
+        		Configuration config = new PropertiesConfiguration(propertiesFilePath);
+        		((PropertiesConfiguration) config).setReloadingStrategy(new FileChangedReloadingStrategy());
+        		((PropertiesConfiguration) config).load();
+                return config;
 
-        try {
-
-            if (inputStream != null) {
-                props.load(inputStream);
-                return props;
-            } else {
+            } catch (Exception e) {
                 if (LOGGER.isLoggable(Level.SEVERE))
-                    LOGGER.log(Level.SEVERE, "The properties file InputStream is null");
+                    LOGGER.log(Level.SEVERE, "Error loading the proxy properties file ", e);
                 return null;
             }
-
-        } catch (IOException e) {
-            if (LOGGER.isLoggable(Level.SEVERE))
-                LOGGER.log(Level.SEVERE, "Error loading the proxy properties file ", e);
-            return null;
-        } finally {
-            try {
-                if (inputStream != null)
-                    inputStream.close();
-            } catch (IOException e) {
-                if (LOGGER.isLoggable(Level.SEVERE))
-                    LOGGER.log(Level.SEVERE, "Error building the proxy configuration ", e);
-            }
-        }
+    	}
     }
 
     /**
@@ -301,10 +306,10 @@ final class ProxyConfig {
      * @return the hostnameWhitelist
      */
     public Set<String> getHostnameWhitelist() {
-        Properties props = propertiesLoader();
+        Configuration props = propertiesLoader();
 
         if (props != null) {
-            Set<String> set = Utils.parseWhiteList(props.getProperty("hostnameWhitelist"));
+            Set<String> set = Utils.getProperty(props, "hostnameWhitelist");
             if (set != null)
                 this.setHostnameWhitelist(set);
         }
@@ -323,10 +328,10 @@ final class ProxyConfig {
      * @return the mimetypeWhitelist
      */
     public Set<String> getMimetypeWhitelist() {
-        Properties props = propertiesLoader();
+        Configuration props = propertiesLoader();
 
         if (props != null) {
-            Set<String> set = Utils.parseWhiteList(props.getProperty("mimetypeWhitelist"));
+            Set<String> set = Utils.getProperty(props, "mimetypeWhitelist");
             if (set != null)
                 this.setMimetypeWhitelist(set);
         }
@@ -345,27 +350,27 @@ final class ProxyConfig {
      * @return the reqtypeWhitelist
      */
     public Set<String> getReqtypeWhitelist() {
-        Properties props = propertiesLoader();
+        Configuration props = propertiesLoader();
 
         if (props != null) {
             Set<String> rt = new HashSet<String>();
-            String s = props.getProperty("reqtypeWhitelist.capabilities");
+            String s = props.getString("reqtypeWhitelist.capabilities");
             if (s != null)
                 rt.add(s);
 
-            s = props.getProperty("reqtypeWhitelist.geostore");
+            s = props.getString("reqtypeWhitelist.geostore");
             if (s != null)
                 rt.add(s);
 
-            s = props.getProperty("reqtypeWhitelist.csw");
+            s = props.getString("reqtypeWhitelist.csw");
             if (s != null)
                 rt.add(s);
             
-            s = props.getProperty("reqtypeWhitelist.featureinfo");
+            s = props.getString("reqtypeWhitelist.featureinfo");
             if (s != null)
                 rt.add(s);
             
-            s = props.getProperty("reqtypeWhitelist.generic");
+            s = props.getString("reqtypeWhitelist.generic");
             if (s != null)
                 rt.add(s);
 
@@ -386,10 +391,10 @@ final class ProxyConfig {
      * @return the methodsWhitelist
      */
     public Set<String> getMethodsWhitelist() {
-        Properties props = propertiesLoader();
+        Configuration props = propertiesLoader();
 
         if (props != null) {
-            Set<String> set = Utils.parseWhiteList(props.getProperty("methodsWhitelist"));
+            Set<String> set = Utils.getProperty(props, "methodsWhitelist");
             if (set != null)
                 this.setMethodsWhitelist(set);
         }
@@ -408,10 +413,10 @@ final class ProxyConfig {
      * @return the hostsWhitelist
      */
     public Set<String> getHostsWhitelist() {
-        Properties props = propertiesLoader();
+        Configuration props = propertiesLoader();
 
         if (props != null) {
-            Set<String> set = Utils.parseWhiteList(props.getProperty("hostsWhitelist"));
+            Set<String> set = Utils.getProperty(props, "hostsWhitelist");
             if (set != null)
                 this.setHostsWhitelist(set);
         }
