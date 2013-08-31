@@ -24,7 +24,7 @@ import it.geosolutions.httpproxy.service.ProxyConfig;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,7 +41,9 @@ import org.apache.commons.httpclient.HttpMethod;
  * @author Alejandro Diaz
  */
 public class RequestTypeChecker extends AbstractProxyCallback implements ProxyCallback {
-
+	
+	private Set<Pattern> patterns;
+	
     /**
      * Default constructor
      */
@@ -54,6 +56,20 @@ public class RequestTypeChecker extends AbstractProxyCallback implements ProxyCa
      */
     public RequestTypeChecker(ProxyConfig config) {
         super(config);
+        loadPatterns();
+    }
+    
+    /**
+     * Patterns set initializer
+     */
+    private void loadPatterns(){
+    	 Set<String> reqTypes = config.getReqtypeWhitelist();
+         patterns = new HashSet<Pattern>();
+         if (reqTypes != null && reqTypes.size() > 0) {
+             for (String regex: reqTypes) {
+                 patterns.add(Pattern.compile(regex));
+             }
+         }
     }
 
     /*
@@ -63,38 +79,31 @@ public class RequestTypeChecker extends AbstractProxyCallback implements ProxyCa
      */
     public void onRequest(HttpServletRequest request, HttpServletResponse response, URL url)
             throws IOException {
-        Set<String> reqTypes = config.getReqtypeWhitelist();
 
         // //////////////////////////////////////
         // Check off the request type
         // provided vs. permitted request types
         // //////////////////////////////////////
 
-        if (reqTypes != null && reqTypes.size() > 0) {
-            Iterator<String> iterator = reqTypes.iterator();
+    	if(patterns == null || patterns.isEmpty()){
+    		loadPatterns();
+    	}
+    	
+    	 String urlExtForm = url.toExternalForm();
 
-            String urlExtForm = url.toExternalForm();
-            /*if (urlExtForm.indexOf("?") != -1) {
-                urlExtForm = urlExtForm.split("\\?")[1];
-            }*/
+         boolean check = false;
+         for (Pattern pattern: patterns) {
+             Matcher matcher = pattern.matcher(urlExtForm);
 
-            boolean check = false;
-            while (iterator.hasNext()) {
-                String regex = iterator.next();
+             if (matcher.matches()) {
+                 check = true;
+                 break;
+             }
+         }
 
-                Pattern pattern = Pattern.compile(regex);
-                Matcher matcher = pattern.matcher(urlExtForm);
-
-                if (matcher.matches()) {
-                    check = true;
-                    break;
-                }
-            }
-
-            if (!check)
-                throw new HttpErrorException(403, "Request Type"
-                        + " is not among the ones allowed for this proxy");
-        }
+         if (!check)
+             throw new HttpErrorException(403, "Request Type"
+                     + " is not among the ones allowed for this proxy");
     }
 
     /*
