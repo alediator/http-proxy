@@ -24,12 +24,20 @@ import it.geosolutions.httpproxy.service.ProxyConfig;
 import it.geosolutions.httpproxy.utils.Utils;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
+
+import org.springframework.core.io.Resource;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * ProxyConfig class to define the proxy configuration.
@@ -114,6 +122,25 @@ public final class ProxyConfigImpl implements ProxyConfig{
     
     private int defaultStreamByteSize = 1024;
 	
+    /**
+     * Locations proxy configuration list 
+     * @see http-proxy-default.xml
+     */
+	private Resource [] locations;
+	
+	/**
+	 * Default this bean name 'proxyConfig'.
+	 */
+	private String beanName = "proxyConfig";
+	
+	/**
+	 * 
+	 */
+	private Map<String, Long> timeModificationByLocation = new ConcurrentHashMap<String, Long>();
+	
+	/**
+	 * Default constructor
+	 */
 	public ProxyConfigImpl(){
 		super();
 		configProxy();
@@ -171,6 +198,70 @@ public final class ProxyConfigImpl implements ProxyConfig{
             this.setMaxTotalConnections(this.maxTotalConnections);
             this.setMaxTotalConnections(this.defaultMaxConnectionsPerHost);
             this.setDefaultStreamByteSize(this.defaultStreamByteSize);
+        }
+    }
+	
+	/**
+	 * Reload proxy configuration reading {@link ProxyConfigImpl#locations}
+	 */
+	public void reloadProxyConfig(){
+		if(locations != null){
+			for(Resource location : locations){
+				try {
+					if(location.exists()){
+						String fileName = location.getFilename();
+						Long lastModified = location.lastModified();
+						if(!(timeModificationByLocation.containsKey(fileName))){
+							// Save last modification timestamp
+							timeModificationByLocation.put(fileName, lastModified);
+						}else if (isModified(fileName, lastModified)){
+							// Override proxy configuration
+							LOGGER.log(Level.INFO, "Proxy configuration has changed at runtime in file '"+fileName + "'");
+							overrideProperties(location);
+						}
+					}
+				} catch (Exception e) {
+            		LOGGER.log(Level.SEVERE, "Error overriding the proxy configuration ", e);
+				}
+			}
+		}else{
+			LOGGER.log(Level.SEVERE, "Can't observe locations for proxy configuration");
+		}
+	}
+    
+    /**
+     * Determines if the file has been modified since the last check.
+     */
+    public boolean isModified(String fileName, long lastModified) {
+    	long interval = lastModified - timeModificationByLocation.get(fileName);
+		timeModificationByLocation.put(fileName, lastModified);
+        return Math.abs(interval) > 5000;
+    }
+    
+
+    /**
+     * Override this fields with a location properties
+     * 
+     * @param location
+     * 
+     * @throws IOException if read properties throw an error
+     */
+    private void overrideProperties(Resource location) throws IOException{
+		Properties props = new Properties();
+        props.load(location.getInputStream());
+        Enumeration<Object> keys = props.keys();
+        while(keys.hasMoreElements()){
+        	try{
+            	String key = (String) keys.nextElement();
+            	if(key.startsWith(beanName + ".")){
+            		String parameter = key.replace(beanName + ".", "");
+            		Field field = ReflectionUtils.findField(this.getClass(), parameter);
+            		ReflectionUtils.makeAccessible(field);
+            		ReflectionUtils.setField(field, this, props.getProperty(key));
+            	}
+        	}catch (Exception e){
+        		LOGGER.log(Level.SEVERE, "Error overriding the proxy configuration ", e);
+        	}
         }
     }
 
@@ -589,6 +680,29 @@ public final class ProxyConfigImpl implements ProxyConfig{
 	public void setDefault_max_connections_per_host(
 			String default_max_connections_per_host) {
 		this.default_max_connections_per_host = default_max_connections_per_host;
+	}
+	
+	public String getBeanName() {
+		return beanName;
+	}
+
+	public void setBeanName(String beanName) {
+		this.beanName = beanName;
+	}
+	
+	/**
+	 * @return location array
+	 */
+	public Resource[] getLocations() {
+		return locations;
+	}
+
+	/**
+	 * Set default locations for proxy config
+	 * @param locations array
+	 */
+	public void setLocations(Resource[] locations) {
+		this.locations = locations;
 	}
 
 }

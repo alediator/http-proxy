@@ -19,12 +19,7 @@
  */
 package it.geosolutions.httpproxy.service.impl;
 
-import it.geosolutions.httpproxy.callback.HostChecker;
-import it.geosolutions.httpproxy.callback.HostNameChecker;
-import it.geosolutions.httpproxy.callback.MethodsChecker;
-import it.geosolutions.httpproxy.callback.MimeTypeChecker;
 import it.geosolutions.httpproxy.callback.ProxyCallback;
-import it.geosolutions.httpproxy.callback.RequestTypeChecker;
 import it.geosolutions.httpproxy.exception.HttpErrorException;
 import it.geosolutions.httpproxy.service.ProxyConfig;
 import it.geosolutions.httpproxy.service.ProxyHelper;
@@ -189,18 +184,6 @@ public class ProxyServiceImpl implements ProxyService, Serializable{
 			for(ProxyCallback callback: callbacks){
 				callback.setProxyConfig(proxyConfig);
 			}
-		}else{
-			// //////////////////////////////////////////
-			// Setup the callbacks (should be loded 
-			// in spring context).
-			// //////////////////////////////////////////
-
-			callbacks = new ArrayList<ProxyCallback>();
-			callbacks.add(new MimeTypeChecker(proxyConfig));
-			callbacks.add(new HostNameChecker(proxyConfig));
-			callbacks.add(new RequestTypeChecker(proxyConfig));
-			callbacks.add(new MethodsChecker(proxyConfig));
-			callbacks.add(new HostChecker(proxyConfig));
 		}
 	}
 	

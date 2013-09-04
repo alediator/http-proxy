@@ -42,7 +42,15 @@ import org.apache.commons.httpclient.HttpMethod;
  */
 public class RequestTypeChecker extends AbstractProxyCallback implements ProxyCallback {
 	
+	/**
+	 * Compiled patterns
+	 */
 	private Set<Pattern> patterns;
+    
+	/**
+	 * Last request types
+	 */
+    private Set<String> lastReqTypes;
 	
     /**
      * Default constructor
@@ -64,12 +72,18 @@ public class RequestTypeChecker extends AbstractProxyCallback implements ProxyCa
      */
     private void loadPatterns(){
     	 Set<String> reqTypes = config.getReqtypeWhitelist();
-         patterns = new HashSet<Pattern>();
-         if (reqTypes != null && reqTypes.size() > 0) {
-             for (String regex: reqTypes) {
-                 patterns.add(Pattern.compile(regex));
-             }
-         }
+    	 // Check if lastRequestTypes has changed
+    	 if(lastReqTypes == null ||
+    			 !(lastReqTypes.containsAll(reqTypes)
+    					 && reqTypes.contains(lastReqTypes))){
+    		lastReqTypes = reqTypes;
+    		patterns = new HashSet<Pattern>();
+            if (reqTypes != null && reqTypes.size() > 0) {
+                for (String regex: reqTypes) {
+                    patterns.add(Pattern.compile(regex));
+                }
+            }
+    	 }
     }
 
     /*
@@ -79,15 +93,12 @@ public class RequestTypeChecker extends AbstractProxyCallback implements ProxyCa
      */
     public void onRequest(HttpServletRequest request, HttpServletResponse response, URL url)
             throws IOException {
+    	loadPatterns();
 
         // //////////////////////////////////////
         // Check off the request type
         // provided vs. permitted request types
         // //////////////////////////////////////
-
-    	if(patterns == null || patterns.isEmpty()){
-    		loadPatterns();
-    	}
     	
     	 String urlExtForm = url.toExternalForm();
 

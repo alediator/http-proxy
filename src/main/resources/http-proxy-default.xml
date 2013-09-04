@@ -2,8 +2,10 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
     <context:annotation-config/>
     <context:component-scan base-package="it.geosolutions.httpproxy"/>
@@ -18,10 +20,9 @@
         </property>
         <property name="ignoreResourceNotFound" value="false"/>
 	</bean>
-
-    <bean class="org.springframework.beans.factory.config.PropertyOverrideConfigurer">
+	
+   	<bean class="org.springframework.beans.factory.config.PropertyOverrideConfigurer">
         <property name="ignoreResourceNotFound" value="true"/>
-        <property name="order" value="5"/>
         <property name="locations">
             <list>
                 <value>classpath:proxy.properties</value>
@@ -33,7 +34,24 @@
         </property>
     </bean>
      	
-    <bean id="proxyConfig" class="it.geosolutions.httpproxy.service.impl.ProxyConfigImpl" />
+    <bean id="proxyConfig" class="it.geosolutions.httpproxy.service.impl.ProxyConfigImpl">
+    	<!-- This locations must be the same than 'PropertyOverrideConfigurer' -->
+        <property name="locations">
+            <list>
+                <value>classpath:proxy.properties</value>
+                <value>classpath*:proxy-ovr.properties</value>
+                <value>classpath*:proxy-*.properties</value>
+				<value>classpath*:${ovrdir}/proxy-ovr.properties</value>
+                <value>${proxy-ovr}</value>
+            </list>
+        </property>    
+    </bean>
+
+	<!-- Scheduler to reload properties on runtime  -->
+	<task:scheduler id="proxyOverridercheduler" pool-size="10"/>
+    <task:scheduled-tasks scheduler="proxyOverridercheduler">
+	    <task:scheduled ref="proxyConfig" method="reloadProxyConfig" fixed-rate="5000" />
+	</task:scheduled-tasks>
     
     <bean id="proxyHelper" class="it.geosolutions.httpproxy.service.impl.ProxyHelperImpl">
         <property name="proxyConfig"><ref bean="proxyConfig"/></property>

@@ -19,18 +19,6 @@
 			<bean class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy"/>
 		</property>
     </bean>
-    
-    <!-- The file proxy-ext.properties in the classpath is reloaded at runtime too -->
-    <bean id="runtimeExtProxyProperties"
-        class="org.apache.commons.configuration.PropertiesConfiguration"
-		init-method="load">
-		<property name="URL">		
-			<value>classpath:proxy-ext.properties</value>
-		</property>
-		<property name="reloadingStrategy">
-			<bean class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy"/>
-		</property>
-    </bean>
 
     <bean id="additionalFiles"
         class="org.springframework.beans.factory.config.PropertiesFactoryBean">
@@ -54,7 +42,6 @@
     <bean id="proxyProperties" class="org.apache.commons.configuration.CompositeConfiguration">
         <constructor-arg index="0">
             <list>
-                <ref bean="runtimeExtProxyProperties"/>
                 <ref bean="additionalProperties"/>
                 <ref bean="runtimeProxyProperties"/>
             </list>

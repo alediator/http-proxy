@@ -1,0 +1,259 @@
+commit 0fbb066b23a90b03eafe768b7c851fb68ead7017
+Author: Alejandro Díaz Torres <adiaz@emergya.com>
+Date:   Wed Sep 4 01:42:44 2013 +0200
+
+    Proxy configuration improvements for #6 issue
+    
+    * Observe and reload proxy configuration files at runtime. Fixes #6
+    * Minor fix to http-commons alternative
+
+commit 8c79db43a89aeb593b4f42a5923544f43bce6a49
+Author: Alejandro Díaz Torres <adiaz@emergya.com>
+Date:   Sat Aug 31 13:35:29 2013 +0200
+
+    Improve the Regex compilation.
+    
+    Compile request type patterns in callback initialization. Fixes #5 issue.
+
+commit 58cd0b51ceb0b936c96e339747b7077d3e9baa43
+Author: Alejandro Díaz Torres <adiaz@emergya.com>
+Date:   Sat Aug 31 00:38:57 2013 +0200
+
+    Proxy service with Spring Framework. Partial #13 issue
+    
+    Common interface for http-proxy service and implementation (fixes #7 issue):
+    
+    * Spring dependencies has been added to pom.xml
+    * Load Spring context on servlet init.
+    * Proxy configurator as service
+    
+    Proxy configuration improvements:
+    
+    * Proxy configurator implementation that loads proxy properties externalized. Fixes #8 and #6
+    
+    More proxy library improvements:
+    
+    * Proxy configurator implementation that loads proxy properties at runtime with common-configuration library. It load configuration from multiple files ('classpath:proxy-*.properties' pattern).
+    * Library classes refactored adding some packages
+    * Proxy callbacks as services configured in Spring context.
+    * Junit test mocked to test http-proxy service alternatives.
+    * Changes in old junit test.
+
+commit eb9d9e1a359549dc8364da0cbf422cda16b37d9d
+Author: Lorenzo Natali <lorenzo.natali@geo-solutions.it>
+Date:   Tue Jul 30 13:42:21 2013 +0200
+
+    close #22
+
+commit 0671bf17658aef236448f0b5ecc10f4abba3ba87
+Author: Damiano <damianofds@gmail.com>
+Date:   Mon May 13 12:06:18 2013 +0200
+
+    close #21
+
+commit 0a8021520198f3b71bc6965ad8b20c641f947d7c
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Fri Apr 26 16:01:36 2013 +0200
+
+    Update project version to 1.0.4-SNAPSHOT
+
+commit b682dbdbcaf77782d350056ac10a0cf146a1b184
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Fri Jan 25 19:44:11 2013 +0100
+
+    Improving a bit the req type checker and fix stream null issue on executeProxyRequest
+
+commit 19d4406cf882bfcbb70668ba6cccd4c05c27f869
+Author: Damiano <damianofds@gmail.com>
+Date:   Wed Dec 19 14:01:00 2012 +0100
+
+    #20 add deploy plugin for uploading jar
+
+commit 4cc34ee415c89b641bacd0d59de969fc59929f15
+Author: Damiano <damianofds@gmail.com>
+Date:   Wed Dec 19 13:05:01 2012 +0100
+
+    [maven-release-plugin] prepare for next development iteration
+
+commit f5c205348873f5a089a69e3da6936f20e920c0a7
+Author: Damiano <damianofds@gmail.com>
+Date:   Wed Dec 19 13:04:52 2012 +0100
+
+    [maven-release-plugin] prepare release 1.0.2
+
+commit eda8b517bc8ccd6c0c766f0eb136cccce70137a6
+Author: Damiano <damianofds@gmail.com>
+Date:   Wed Dec 19 13:03:03 2012 +0100
+
+    #20 modified pom.xml
+
+commit 46bf0704b68627eecf9038d4cb7f54160edccd3b
+Author: Damiano <damianofds@gmail.com>
+Date:   Wed Dec 19 12:06:12 2012 +0100
+
+    [maven-release-plugin] prepare for next development iteration
+
+commit 63fb20fb4a739a43caccb4cb388fb6943cc6faa4
+Author: Damiano <damianofds@gmail.com>
+Date:   Wed Dec 19 12:06:02 2012 +0100
+
+    [maven-release-plugin] prepare release 1.0.2
+
+commit 0e1271dee5b45439de156c0bcd99067746ccbea1
+Merge: 0d8b473 788e5c7
+Author: Simone Giannecchini <simone.giannecchini@geo-solutions.it>
+Date:   Thu Sep 27 09:21:57 2012 -0700
+
+    Merge pull request #19 from nfms4redd/master
+    
+    pom.xml adjustments
+
+commit 788e5c756082610732c1aa6c88b055ef9ff02469
+Author: Oscar Fonts <oscar.fonts@gmail.com>
+Date:   Thu Sep 27 13:12:23 2012 +0200
+
+    Distribute as jar; use jetty servlet api; correct webapp location.
+
+commit 0d8b47306f4020a6a48359df1386a5094c5ab60c
+Author: Simone Giannecchini <simone.giannecchini@geo-solutions.it>
+Date:   Tue Aug 21 12:31:34 2012 +0200
+
+    [maven-release-plugin] prepare for next development iteration
+
+commit a68df74b50e11d3904c3a4a362cc5471283d845d
+Author: Simone Giannecchini <simone.giannecchini@geo-solutions.it>
+Date:   Tue Aug 21 12:31:23 2012 +0200
+
+    [maven-release-plugin] prepare release 1.0.1
+
+commit 0d752e8ad0dc86c3c76486b6954e40b844ddd0fa
+Author: mstn <mstn@git.com>
+Date:   Tue Aug 21 10:11:15 2012 +0200
+
+    fixed deprecated method
+
+commit 5c05b6009342b3b5c5338c1d7ad9b68bbaa18ecc
+Author: Simone Giannecchini <simone.giannecchini@geo-solutions.it>
+Date:   Wed Aug 1 17:42:28 2012 +0200
+
+    cleaning properties file
+
+commit b30abd7ae5ed65c8d24e82c1497b1f04b7027dfa
+Author: Simone Giannecchini <simone.giannecchini@geo-solutions.it>
+Date:   Wed Aug 1 17:09:25 2012 +0200
+
+    cleaning properties file
+
+commit 67edea38ce6efbe30977fcebfab420050c0e82d3
+Author: Simone Giannecchini <simone.giannecchini@geo-solutions.it>
+Date:   Wed Aug 1 17:08:47 2012 +0200
+
+    cleaning properties file
+
+commit ecdfd1320ad86f49373928856ddc46a1a2b1b8bd
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Mon Jun 25 18:15:58 2012 +0200
+
+    [maven-release-plugin] prepare for next development iteration
+
+commit dc16cac5631938385cc59c135343034acfee7890
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Mon Jun 25 18:15:36 2012 +0200
+
+    [maven-release-plugin] prepare release v1.0
+
+commit efd22c8fbfac72bbb31423fe23c9fad424ddfa78
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Mon Jun 25 18:13:34 2012 +0200
+
+    Updating root pom for release
+
+commit 24482dbd1b910504bc61d4d5a8d2db8d3e8a7a8b
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Mon Jun 25 17:55:34 2012 +0200
+
+    Updating root pom for release
+
+commit 28c8ec1d6f4585382f6c607f3c46dfa7b6f8034f
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Mon Jun 25 15:41:48 2012 +0200
+
+    Fixing jetty port in root pom
+
+commit bb8c9e572af7c02d3f278511ca5f6944748b7909
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Wed Feb 22 17:43:05 2012 +0100
+
+    Fix issue #14
+
+commit 34cb183337693bf711ed38353867f789f7022cd9
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Mon Jan 30 16:06:24 2012 +0100
+
+    Some improvements about white lists
+
+commit 4ba6236a83d70a18b496ba7b844b931cd5050857
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Thu Jan 26 17:53:13 2012 +0100
+
+    Improving proxy configuration and callbacks for request checks
+
+commit 57f3c77347f3603e00a92fe95aa7e60da1d756fc
+Author: Andrea Aime <andrea.aime@gmail.com>
+Date:   Wed Jan 25 12:01:42 2012 +0100
+
+    Example of pluggable callback and checking the return mime type with it
+
+commit 8a308039b8d6c4ca3bce478e724032fdf98b627f
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Wed Jan 25 11:33:31 2012 +0100
+
+    Introducing copyright
+
+commit 7be41938fe5369cd5bc486875be36218795a827b
+Author: Andrea Aime <andrea.aime@gmail.com>
+Date:   Wed Jan 25 11:31:56 2012 +0100
+
+    Adding LICENSE file contents
+
+commit 4c19651ebfef736bd36c6cdd7ebeae5f0ff57598
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Tue Jan 24 18:17:37 2012 +0100
+
+    Fixing permission check for requests
+
+commit 3eab29a2cf8a514724aa273fce23e34a640e3b24
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Tue Jan 24 17:05:46 2012 +0100
+
+    Introducing multi theaded HTTP connection manager and withe lists
+
+commit a478e960fcf891447e24fcba999312d2554b2e16
+Author: Simone Giannecchini <simone.giannecchini@geo-solutions.it>
+Date:   Thu Jan 5 16:56:43 2012 +0100
+
+    added LICENSE file although atm we are still talking about the license
+
+commit 80f7ec665f5b17f27f31c0ed79f52e5683ea1dd3
+Author: Simone Giannecchini <simone.giannecchini@geo-solutions.it>
+Date:   Thu Jan 5 16:56:05 2012 +0100
+
+    adding a readme file
+
+commit 00fb72bc0c80bec915014e179c9b672f1694ab4f
+Author: Simone Giannecchini <simone.giannecchini@geo-solutions.it>
+Date:   Thu Jan 5 16:53:11 2012 +0100
+
+    refactoring http proxy
+
+commit 73d06af595ae6545c0d32aa597d411b73c0a2343
+Author: Simone Giannecchini <simone.giannecchini@geo-solutions.it>
+Date:   Thu Jan 5 16:50:07 2012 +0100
+
+    refactoring http proxy
+
+commit 0c69166607a15555c4e733336ec05d16b367fbb4
+Author: tobia <tobia.dipisa@geo-solutions.it>
+Date:   Fri Nov 11 10:17:49 2011 +0100
+
+    Initial commit
