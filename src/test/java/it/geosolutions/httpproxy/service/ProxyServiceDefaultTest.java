@@ -39,7 +39,7 @@ public class ProxyServiceDefaultTest extends BaseProxyServiceTest {
 	 */
 	@Test
 	public void testExecuteGet() {
-		super.testExecuteGet();
+		super.executeGet();
 	}
 
 }

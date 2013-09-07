@@ -8,9 +8,4 @@
     <!-- Default implementation to let you override properties at runtime -->
     <import resource="http-proxy-default.xml"/>
     
-    <!-- Alternative implementation that loads configuration files in runtime 
-    <import resource="http-proxy-commons-alternative.xml"/>
-    uncomment it if you want to use and comment default implementation 
-    -->
-    
 </beans>

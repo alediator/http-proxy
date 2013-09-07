@@ -32,7 +32,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
  * @author <a href="mailto:aledt84@gmail.com">Alejandro Diaz Torres</a>
  * 
  */
-public class BaseProxyServiceTest extends BaseHttpTest {
+public abstract class BaseProxyServiceTest extends BaseHttpTest {
 
 	@Autowired
 	protected ProxyService proxy;
@@ -42,7 +42,7 @@ public class BaseProxyServiceTest extends BaseHttpTest {
 	/**
 	 * Test IProxyService execute as HTTP GET
 	 */
-	public void testExecuteGet() {
+	public void executeGet() {
 		try {
 			// Generate mocked request and response
 			MockHttpServletRequest mockRequest = new MockHttpServletRequest(

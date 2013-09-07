@@ -26,8 +26,6 @@
         <property name="locations">
             <list>
                 <value>classpath:proxy.properties</value>
-                <value>classpath*:proxy-ovr.properties</value>
-                <value>classpath*:proxy-*.properties</value>
 				<value>classpath*:${ovrdir}/proxy-ovr.properties</value>
                 <value>${proxy-ovr}</value>
             </list>
@@ -39,8 +37,6 @@
         <property name="locations">
             <list>
                 <value>classpath:proxy.properties</value>
-                <value>classpath*:proxy-ovr.properties</value>
-                <value>classpath*:proxy-*.properties</value>
 				<value>classpath*:${ovrdir}/proxy-ovr.properties</value>
                 <value>${proxy-ovr}</value>
             </list>
@@ -50,7 +46,7 @@
 	<!-- Scheduler to reload properties on runtime  -->
 	<task:scheduler id="proxyOverridercheduler" pool-size="10"/>
     <task:scheduled-tasks scheduler="proxyOverridercheduler">
-	    <task:scheduled ref="proxyConfig" method="reloadProxyConfig" fixed-rate="5000" />
+	    <task:scheduled ref="proxyConfig" method="reloadProxyConfig" fixed-rate="60000" />
 	</task:scheduled-tasks>
     
     <bean id="proxyHelper" class="it.geosolutions.httpproxy.service.impl.ProxyHelperImpl">

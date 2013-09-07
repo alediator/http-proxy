@@ -36,8 +36,11 @@ import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.web.context.support.ServletContextResource;
 
 /**
  * ProxyConfig class to define the proxy configuration.
@@ -204,28 +207,63 @@ public final class ProxyConfigImpl implements ProxyConfig{
 	/**
 	 * Reload proxy configuration reading {@link ProxyConfigImpl#locations}
 	 */
-	public void reloadProxyConfig(){
-		if(locations != null){
-			for(Resource location : locations){
+	public void reloadProxyConfig() {
+		if (locations != null) {
+			for (Resource location : locations) {
 				try {
-					if(location.exists()){
-						String fileName = location.getFilename();
-						Long lastModified = location.lastModified();
-						if(!(timeModificationByLocation.containsKey(fileName))){
-							// Save last modification timestamp
-							timeModificationByLocation.put(fileName, lastModified);
-						}else if (isModified(fileName, lastModified)){
-							// Override proxy configuration
-							LOGGER.log(Level.INFO, "Proxy configuration has changed at runtime in file '"+fileName + "'");
-							overrideProperties(location);
+					if (location.exists()) {
+						trackLocation(location);
+					} else {
+						// Try to load from file system:
+						String path = null;
+						if (location instanceof ClassPathResource) {
+							// This instance is running without web context
+							path = ((ClassPathResource) location).getPath();
+						} else if (location instanceof ServletContextResource) {
+							// This instance is running in a web context
+							path = ((ServletContextResource) location)
+									.getPath();
+						}
+						if (path != null) {
+							Resource alternative = new UrlResource("file:/"
+									+ path);
+							if (alternative.exists()) {
+								trackLocation(alternative);
+							}
 						}
 					}
 				} catch (Exception e) {
-            		LOGGER.log(Level.SEVERE, "Error overriding the proxy configuration ", e);
+					LOGGER.log(Level.SEVERE,
+							"Error overriding the proxy configuration ", e);
 				}
 			}
-		}else{
-			LOGGER.log(Level.SEVERE, "Can't observe locations for proxy configuration");
+		} else {
+			LOGGER.log(Level.SEVERE,
+					"Can't observe locations for proxy configuration");
+		}
+	}
+
+	/**
+	 * Save last modification of the file to track it and override this bean
+	 * properties if the file has been changed
+	 * 
+	 * @param location
+	 *            Resource location of the file
+	 * 
+	 * @throws IOException
+	 */
+	private void trackLocation(Resource location) throws IOException {
+		String fileName = location.getFilename();
+		Long lastModified = location.lastModified();
+		if (!(timeModificationByLocation.containsKey(fileName))) {
+			// Save last modification timestamp
+			timeModificationByLocation.put(fileName, lastModified);
+		} else if (isModified(fileName, lastModified)) {
+			// Override proxy configuration
+			LOGGER.log(Level.INFO,
+					"Proxy configuration has changed at runtime in file '"
+							+ fileName + "'");
+			overrideProperties(location);
 		}
 	}
     
@@ -235,7 +273,8 @@ public final class ProxyConfigImpl implements ProxyConfig{
     public boolean isModified(String fileName, long lastModified) {
     	long interval = lastModified - timeModificationByLocation.get(fileName);
 		timeModificationByLocation.put(fileName, lastModified);
-        return Math.abs(interval) > 5000;
+		
+        return Math.abs(interval) > 0;
     }
     
 
@@ -258,6 +297,7 @@ public final class ProxyConfigImpl implements ProxyConfig{
             		Field field = ReflectionUtils.findField(this.getClass(), parameter);
             		ReflectionUtils.makeAccessible(field);
             		ReflectionUtils.setField(field, this, props.getProperty(key));
+        			LOGGER.log(Level.INFO, "[override]: "+ key + "=" + props.getProperty(key));
             	}
         	}catch (Exception e){
         		LOGGER.log(Level.SEVERE, "Error overriding the proxy configuration ", e);

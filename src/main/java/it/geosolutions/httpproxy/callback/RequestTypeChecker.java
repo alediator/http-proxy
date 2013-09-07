@@ -67,24 +67,58 @@ public class RequestTypeChecker extends AbstractProxyCallback implements ProxyCa
         loadPatterns();
     }
     
-    /**
-     * Patterns set initializer
-     */
-    private void loadPatterns(){
-    	 Set<String> reqTypes = config.getReqtypeWhitelist();
-    	 // Check if lastRequestTypes has changed
-    	 if(lastReqTypes == null ||
-    			 !(lastReqTypes.containsAll(reqTypes)
-    					 && reqTypes.contains(lastReqTypes))){
-    		lastReqTypes = reqTypes;
-    		patterns = new HashSet<Pattern>();
-            if (reqTypes != null && reqTypes.size() > 0) {
-                for (String regex: reqTypes) {
-                    patterns.add(Pattern.compile(regex));
-                }
-            }
-    	 }
-    }
+	/**
+	 * Patterns set initializer
+	 */
+	private void loadPatterns() {
+		Set<String> reqTypes = config.getReqtypeWhitelist();
+		// Check if lastRequestTypes has changed
+		if (hasChanged(reqTypes)) {
+			patterns = new HashSet<Pattern>();
+			if (reqTypes != null && reqTypes.size() > 0) {
+				for (String regex : reqTypes) {
+					patterns.add(Pattern.compile(regex));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Auxiliary method to check if the reqType set has been changed
+	 * 
+	 * @param reqTypes
+	 *            new set of request types
+	 * 
+	 * @return true if the request type parameters has been changed or false
+	 *         otherwise
+	 */
+	private boolean hasChanged(Set<String> reqTypes) {
+
+		boolean changed = false;
+
+		if (lastReqTypes == null) {
+			// Not compiled yet!
+			changed = true;
+		} else {
+
+			for (String reqType : reqTypes) {
+				if (!lastReqTypes.contains(reqType)) {
+					// it's a new request type --> we must recompile
+					changed = true;
+					break;
+				} else {
+					lastReqTypes.remove(reqType);
+				}
+			}
+
+			// if request types hasn't changed, the set must be empty
+			changed = changed || !lastReqTypes.isEmpty();
+		}
+
+		// Save the new last request types and return the ''change'' value
+		lastReqTypes = reqTypes;
+		return changed;
+	}
 
     /*
      * (non-Javadoc)
