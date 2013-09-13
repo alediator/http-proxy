@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2007 - 2011 GeoSolutions S.A.S.
+ *  Copyright (C) 2007 - 2013 GeoSolutions S.A.S.
  *  http://www.geo-solutions.it
  *
  *  GPLv3 + Classpath exception
@@ -21,6 +21,7 @@ package it.geosolutions.httpproxy;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -29,76 +30,109 @@ import org.junit.Test;
  * HttpProxyTest class. Test Cases for the HTTPProxy servlet.
  * 
  * @author Tobia Di Pisa at tobia.dipisa@geo-solutions.it
+ * @author Alejandro Diaz
  */
 public class HttpProxyTest extends BaseHttpTest {
 
-    @Test
-    public void testDoGet() throws Exception {
+	/* Test URL parameters */
+	private String DEFAULT_PROXY_URL = "http://localhost:8080/http_proxy/proxy/?url=";
+	private String CORRECT_URL = "http://demo1.geo-solutions.it/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&version=1.1.1";
+	private String FAKE_URL = "http://fakeServer/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&version=1.1.1";
+	private String FAKE_REQUEST_TYPE_URL = "http://localhost:8080";
+	private String DEFAULT_ENCODE = "UTF-8";
+	private String RESPONSE_FORBIDDEN = "Forbidden";
 
-        // ////////////////////////////
-        // Test with a correct request
-        // ////////////////////////////
+	/**
+	 * Test with a correct request
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testDoCorrectGet() throws Exception {
 
-        URL url = new URL("http://localhost:8080/http_proxy/proxy/?"
-                + "url=http%3A%2F%2Fdemo1.geo-solutions.it%2Fgeoserver%2Fwms%3F"
-                + "SERVICE%3DWMS%26REQUEST%3DGetCapabilities%26version=1.1.1");
-        
-        // Original response
-        URL urlWithoutProxy = new URL("http://demo1.geo-solutions.it/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities&version=1.1.1");
-        HttpURLConnection conWithoutProxy = (HttpURLConnection) urlWithoutProxy.openConnection();
-        String responseWithoutProxy = IOUtils.toString(conWithoutProxy.getInputStream());
-        
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+		URL url = new URL(DEFAULT_PROXY_URL
+				+ URLEncoder.encode(CORRECT_URL, DEFAULT_ENCODE));
 
-        String response = IOUtils.toString(con.getInputStream());
+		// Original response
+		URL urlWithoutProxy = new URL(CORRECT_URL);
+		HttpURLConnection conWithoutProxy = (HttpURLConnection) urlWithoutProxy
+				.openConnection();
+		String responseWithoutProxy = IOUtils.toString(conWithoutProxy
+				.getInputStream());
 
-        assertNotNull(response);
-        assertEquals(response, responseWithoutProxy);
-        assertTrue(con.getRequestMethod().equals("GET"));
-        assertTrue(con.getResponseCode() == 200);
+		HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
-        con.disconnect();
-        conWithoutProxy.disconnect();
+		String response = IOUtils.toString(con.getInputStream());
 
-        // ////////////////////////////
-        // Test with a fake hostname
-        // ////////////////////////////
+		assertNotNull(response);
+		assertEquals(response, responseWithoutProxy);
+		assertTrue(con.getRequestMethod().equals("GET"));
+		assertTrue(con.getResponseCode() == 200);
 
-        url = new URL("http://localhost:8080/http_proxy/proxy/?"
-                + "url=http%3A%2F%2FfakeServer%2Fgeoserver%2Fwms%3F"
-                + "SERVICE%3DWMS%26REQUEST%3DGetCapabilities%26version=1.1.1");
+		con.disconnect();
+		conWithoutProxy.disconnect();
+	}
 
-        con = (HttpURLConnection) url.openConnection();
+	/**
+	 * Test with a fake hostname
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testDoFakeHostNameGet() throws Exception {
 
-        String message = con.getResponseMessage();
+		URL url = new URL(DEFAULT_PROXY_URL
+				+ URLEncoder.encode(FAKE_URL, DEFAULT_ENCODE));
 
-        assertNotNull(message);
-        assertEquals(message, "Host Name fakeServer is not among the ones allowed for this proxy");
+		HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
-        assertTrue(con.getRequestMethod().equals("GET"));
-        assertTrue(con.getResponseCode() == 403);
+		String message = con.getResponseMessage();
 
-        con.disconnect();
+		assertNotNull(message);
+		if (!RESPONSE_FORBIDDEN.equals(message)) { // Apache Tomcat returns a
+													// 'Forbidden' message and
+													// the default html error
+													// page with the explanation
+			assertEquals(message,
+					"Host Name fakeServer is not among the ones allowed for this proxy");
+			// Jetty show the final message directly
+		}
 
-        // ///////////////////////////////
-        // Test with a fake request type
-        // ///////////////////////////////
+		assertTrue(con.getRequestMethod().equals("GET"));
+		assertTrue(con.getResponseCode() == 403);
 
-        url = new URL("http://localhost:8080/http_proxy/proxy/?"
-                + "url=http%3A%2F%2Fdemo1.geo-solutions.it%2Fgeoserver%2Fwms%3F"
-                + "SERVICE%3DWMS%26REQUEST%3DGetCap%26version=1.1.1");
+		con.disconnect();
+	}
 
-        con = (HttpURLConnection) url.openConnection();
+	/**
+	 * Test with a fake request type
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testDoFakeRequestTypeGet() throws Exception {
 
-        message = con.getResponseMessage();
+		URL url = new URL(DEFAULT_PROXY_URL
+				+ URLEncoder.encode(FAKE_REQUEST_TYPE_URL, DEFAULT_ENCODE));
 
-        assertNotNull(message);
-        assertEquals(message, "Request Type is not among the ones allowed for this proxy");
+		HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
-        assertTrue(con.getRequestMethod().equals("GET"));
-        assertTrue(con.getResponseCode() == 403);
+		String message = con.getResponseMessage();
 
-        con.disconnect();
-    }
+		assertNotNull(message);
+		if (!RESPONSE_FORBIDDEN.equals(message)) { // Apache Tomcat returns a
+													// 'Forbidden' message and
+													// the default html error
+													// page with the explanation
+			assertEquals(message,
+					"Request Type is not among the ones allowed for this proxy");
+			// Jetty show the final message directly
+		}
+
+		assertTrue(con.getRequestMethod().equals("GET"));
+		assertTrue(con.getResponseCode() == 403);
+
+		con.disconnect();
+	}
 
 }

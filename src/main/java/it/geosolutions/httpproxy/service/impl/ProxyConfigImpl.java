@@ -258,6 +258,8 @@ public final class ProxyConfigImpl implements ProxyConfig{
 		if (!(timeModificationByLocation.containsKey(fileName))) {
 			// Save last modification timestamp
 			timeModificationByLocation.put(fileName, lastModified);
+			// Fist override proxy configuration
+			overrideProperties(location);
 		} else if (isModified(fileName, lastModified)) {
 			// Override proxy configuration
 			LOGGER.log(Level.INFO,
